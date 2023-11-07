@@ -1,7 +1,7 @@
 #include "GameLib/Framework.h"
 #include "File.h"
 #include "Image.h"
-#include "State.h"
+#include "Sequence/Game/State.h"
 #include "Sequence/StatusFrame.h"
 namespace GameLib
 {

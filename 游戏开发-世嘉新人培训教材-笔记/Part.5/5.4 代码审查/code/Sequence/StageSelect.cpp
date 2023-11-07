@@ -15,7 +15,7 @@ namespace Sequence {
 	{
 		mImage->draw(0, 0, 0, 0, mImage->getWidth(), mImage->getHeight());
 		int stage = 0;
-		char tiggerChars[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
+		char tiggerChars[] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9','q' };
 		for (int i = 0; i < sizeof(tiggerChars); i++)
 		{
 			if (GameLib::Framework::instance().isKeyTriggered(tiggerChars[i]))
@@ -24,7 +24,16 @@ namespace Sequence {
 			};
 
 		}
-		frame->setStageId(stage);
-		frame->setNextStatus(StatusFrame::StatusType::SEQ_GAME);
+		if (tiggerChars[stage] == 'q')
+		{
+			frame->setNextStatus(StatusFrame::StatusType::SEQ_TITLE);
+			return;
+		}
+		if (stage != 0)
+		{
+
+			frame->setStageId(stage);
+			frame->setNextStatus(StatusFrame::StatusType::SEQ_GAME);
+		}
 	}
 }

@@ -1,7 +1,7 @@
 
 namespace Sequence {
 	class Title;
-	class Game;
+	class StatusFrameGame;
 	class StageSelect;
 	class StatusFrame
 	{
@@ -19,10 +19,11 @@ namespace Sequence {
 
 		void update();
 		void setStageId(int stageId);
+		int getStageId();
 		void setNextStatus(StatusType sequenceId);
 	private:
 		Title* mTitle;
-		Game* mGame;
+		StatusFrameGame* mGame;
 		StageSelect* mStage;
 		int mStageId;
 		StatusType mSeqId;

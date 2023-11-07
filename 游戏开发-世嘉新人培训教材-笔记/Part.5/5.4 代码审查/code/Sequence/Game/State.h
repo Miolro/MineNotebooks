@@ -1,8 +1,10 @@
 #pragma once
 #include "GameLib/GameLib.h"
-#include "File.h"
-#include "Array2D.h"
-#include "Image.h"
+#include "../File.h"
+#include "../Array2D.h"
+#include "../Image.h"
+namespace Sequence { class StatusFrameGame; }
+
 class Object
 {
 public:
@@ -41,10 +43,11 @@ public:
 	State();
 	~State();
 	State(const char* path);
-	void draw();
+	void draw(Sequence::StatusFrameGame*);
 	void move(char const input);
 	bool gameOver();
 private:
+
 	int mMoveCount;
 	int mWidth;
 	int mHeight;
@@ -56,4 +59,3 @@ private:
 	void debugArray2d();
 	void setNextStatus();
 };
-
