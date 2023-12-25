@@ -9,6 +9,10 @@
 
 [8.2碰撞响应](#82-碰撞响应)
 
+[8.3多物体碰撞](#83-发生多个碰撞时的问题)
+
+[8.4碰撞响应与操作性](#84-碰撞响应与操作性)
+
 ## 8.1 碰撞检测
 
 ### 8.1.1 正方形的相交检测
@@ -68,43 +72,41 @@
 - 碰撞检测
 
 ```C++
-    bool isIntersected(const Object& object)const
+bool isIntersected(const Object& object)const
+{
+	// 右边 mx+half
+	// 左边 mx-half
+	int thisObjL = mX - mHalfSize;
+	int thisObjR = mX + mHalfSize;
+	int thatObjL = object.mX - object.mHalfSize;
+	int thatObjR = object.mX + object.mHalfSize;
+	//   →+
+	// ↓
+	// +
+	// 向右向下为正坐标
+	// 脑补分析一下
+	// 这里表示如果这个对象的左边的的值小于那个对象的右边那么表示横向相交
+	// 如果这个对象的右边大于那个对象的左边位置表示横向相交
+	// 这里只是横向判断 当横向复合条件时去看纵向的数值
+	if ((thisObjL < thatObjR) && (thisObjR > thatObjL))
+	{
+		//断点走到了这里表示方块的左边或者右边已经侵入
+		int thisObjT = mY - mHalfSize;
+		int thisObjB = mY + mHalfSize;
+		int thatObjT = object.mY - object.mHalfSize;
+		int thatObjB = object.mY + object.mHalfSize;
+		// 这边开始判断纵向
+		// 脑补分析
+		// 如果这个对象的顶部坐标小于那个对象的底部坐标那么表示纵向相交
+		// 如果这个对象的底部坐标大于那个对象的顶部坐标那表示纵向相交
+		if ((thisObjT < thatObjB) && (thisObjB > thatObjT))
 		{
-			// 右边 mx+half
-			// 左边 mx-half
-			int thisObjL = mX - mHalfSize;
-			int thisObjR = mX + mHalfSize;
-
-			int thatObjL = object.mX - object.mHalfSize;
-			int thatObjR = object.mX + object.mHalfSize;
-			//   →+
-			// ↓
-			// +
-			// 向右向下为正坐标
-			// 脑补分析一下
-			// 这里表示如果这个对象的左边的的值小于那个对象的右边那么表示横向相交
-			// 如果这个对象的右边大于那个对象的左边位置表示横向相交
-			// 这里只是横向判断 当横向复合条件时去看纵向的数值
-			if ((thisObjL < thatObjR) && (thisObjR > thatObjL))
-			{
-				//断点走到了这里表示方块的左边或者右边已经侵入
-				int thisObjT = mY - mHalfSize;
-				int thisObjB = mY + mHalfSize;
-
-				int thatObjT = object.mY - object.mHalfSize;
-				int thatObjB = object.mY + object.mHalfSize;
-				// 这边开始判断纵向
-				// 脑补分析
-				// 如果这个对象的顶部坐标小于那个对象的底部坐标那么表示纵向相交
-				// 如果这个对象的底部坐标大于那个对象的顶部坐标那表示纵向相交
-				if ((thisObjT < thatObjB) && (thisObjB > thatObjT))
-				{
-					//当两个条件都满足时表示 纵横都相交
-					return true;
-				}
-			}
-			return false;
+			//当两个条件都满足时表示 纵横都相交
+			return true;
 		}
+	}
+	return false;
+}
     
 ```
 
@@ -120,166 +122,31 @@
 
 ```C++
     // 移动控制
-		char keyList[4] = { 'w','s','a','d' };
-		int moveX = 0;
-		int moveY = 0;
-		for (int i = 0; i < sizeof(keyList); i++)
-		{
-			if (isKeyOn(keyList[i]))
-			{
-				switch (keyList[i])
-				{
-				case'w':moveY = -1; break;
-				case's':moveY = +1; break;
-				case'a':moveX = -1; break;
-				case'd':moveX = +1; break;
-				}
-			}
-		}
-		gDynamics->mX += moveX;
-		gDynamics->mY += moveY;
-
-		// 碰撞后抵消前面偏移的加  碰撞后变色
-		if (gDynamics->isIntersected(*gStatic))
-		{
-			color = 0xffff00ff;
-			// +=move -=move = 0 所以偏移被抵消
-			gDynamics->mX -= moveX;
-			gDynamics->mY -= moveY;
-		}
-        
-```
-
-完整代码
-
-```C++
-#include "GameLib/Framework.h"
-#include "core/MainFrame.h"
-namespace GameLib {
-
-	class Object
+char keyList[4] = { 'w','s','a','d' };
+int moveX = 0;
+int moveY = 0;
+for (int i = 0; i < sizeof(keyList); i++)
+{
+	if (isKeyOn(keyList[i]))
 	{
-	public:
-		Object(int x, int y, int halfSize)
+		switch (keyList[i])
 		{
-			mX = x;
-			mY = y;
-			mHalfSize = halfSize;
-		};
-		// 碰撞检测 传入相对的一个对象
-		bool isIntersected(const Object& object)const
-		{
-			// 右边 mx+half
-			// 左边 mx-half
-			int thisObjL = mX - mHalfSize;
-			int thisObjR = mX + mHalfSize;
-
-			int thatObjL = object.mX - object.mHalfSize;
-			int thatObjR = object.mX + object.mHalfSize;
-			//   →+
-			// ↓
-			// +
-			// 向右向下为正坐标
-			// 脑补分析一下
-			// 这里表示如果这个对象的左边的的值小于那个对象的右边那么表示横向相交
-			// 如果这个对象的右边大于那个对象的左边位置表示横向相交
-			// 这里只是横向判断 当横向复合条件时去看纵向的数值
-			if ((thisObjL < thatObjR) && (thisObjR > thatObjL))
-			{
-				//断点走到了这里表示方块的左边或者右边已经侵入
-				int thisObjT = mY - mHalfSize;
-				int thisObjB = mY + mHalfSize;
-
-				int thatObjT = object.mY - object.mHalfSize;
-				int thatObjB = object.mY + object.mHalfSize;
-				// 这边开始判断纵向
-				// 脑补分析
-				// 如果这个对象的顶部坐标小于那个对象的底部坐标那么表示纵向相交
-				// 如果这个对象的底部坐标大于那个对象的顶部坐标那表示纵向相交
-				if ((thisObjT < thatObjB) && (thisObjB > thatObjT))
-				{
-					//当两个条件都满足时表示 纵横都相交
-					return true;
-				}
-			}
-			return false;
-		}
-		int mX;
-		int mY;
-		int mHalfSize;
-	};
-
-	bool gInit = true;
-	Object* gDynamics;
-	Object* gStatic;
-	unsigned* vram;
-	int vramWidth;
-	int vramHeight;
-	void Framework::update() {
-		if (gInit)
-		{
-			gInit = false;
-			setFrameRate(60);
-			gDynamics = new Object(16, 50, 16);
-			gStatic = new Object(100, 160, 16);
-			vram = Framework::instance().videoMemory();
-			vramWidth = Framework::instance().width();
-			vramHeight = Framework::instance().height();
-		}
-
-		unsigned color = 0xffff0000;// 未碰撞时的颜色
-
-		// 移动控制
-		char keyList[4] = { 'w','s','a','d' };
-		int moveX = 0;
-		int moveY = 0;
-		for (int i = 0; i < sizeof(keyList); i++)
-		{
-			if (isKeyOn(keyList[i]))
-			{
-				switch (keyList[i])
-				{
-				case'w':moveY = -1; break;
-				case's':moveY = +1; break;
-				case'a':moveX = -1; break;
-				case'd':moveX = +1; break;
-				}
-			}
-		}
-		gDynamics->mX += moveX;
-		gDynamics->mY += moveY;
-
-		// 碰撞后抵消前面偏移的加
-		if (gDynamics->isIntersected(*gStatic))
-		{
-			color = 0xffff00ff;
-			// +=move -=move = 0 所以偏移被抵消
-			gDynamics->mX -= moveX;
-			gDynamics->mY -= moveY;
-		}
-		for (int i = 0; i < vramHeight * vramWidth; i++)
-		{
-			vram[i] = 0x00000000;
-		}
-
-		// 绘制静态对象
-		for (int i = gStatic->mY - gStatic->mHalfSize; i < gStatic->mY - gStatic->mHalfSize + gStatic->mHalfSize * 2; i++)
-		{
-			for (int j = gStatic->mX - gStatic->mHalfSize; j < gStatic->mX - gStatic->mHalfSize + gStatic->mHalfSize * 2; j++)
-			{
-				vram[i * vramWidth + j] = 0xff00ffff;
-			}
-		}
-
-		// 绘制动态对象
-		for (int i = gDynamics->mY - gDynamics->mHalfSize; i < gDynamics->mY - gDynamics->mHalfSize + gDynamics->mHalfSize * 2; i++)
-		{
-			for (int j = gDynamics->mX - gDynamics->mHalfSize; j < gDynamics->mX - gDynamics->mHalfSize + gDynamics->mHalfSize * 2; j++)
-			{
-				vram[i * vramWidth + j] = color;
-			}
+		case'w':moveY = -1; break;
+		case's':moveY = +1; break;
+		case'a':moveX = -1; break;
+		case'd':moveX = +1; break;
 		}
 	}
+}
+gDynamics->mX += moveX;
+gDynamics->mY += moveY;
+// 碰撞后抵消前面偏移的加  碰撞后变色
+if (gDynamics->isIntersected(*gStatic))
+{
+	color = 0xffff00ff;
+	// +=move -=move = 0 所以偏移被抵消
+	gDynamics->mX -= moveX;
+	gDynamics->mY -= moveY;
 }
 
 ```
@@ -292,207 +159,86 @@ namespace GameLib {
 原本是需要移动7格  但是7格会发生碰撞  此时取二分之一 依然发生碰撞 然后再取四分之一(二分之一的二分之一)然后还是碰撞 最后取八分之一时没有碰撞 求得比率是八分之一 然后用八分之一与本应该移动的7格相乘得带最后移动的数
 
 ```C++
-		// 克隆一个模拟对象
-		Object model(gDynamics->mX, gDynamics->mY, gDynamics->mHalfSize);
-		// 循环4次判断
-		int modelX = moveX;
-		int modelY = moveY;
-
-		int a = 1; // 分子
-		int b = 1; // 分母
-
-		int finalA = 0;
-		int finalB = 0;
-
-		for (int i = 0; i < 4; i++)
-		{
-			// 查看模拟对象在移动后是否发生碰撞
-			a *= 2;
-			b *= 2;
-			model.set(gDynamics->mX + modelX, gDynamics->mY + modelY);
-			if (model.isIntersected(*gStatic))
-			{
-				color = 0xffffffff;
-				a -= 1;
-			}
-			else
-			{
-				// 最后输出的值
-				finalA = modelX;
-				finalB = modelY;
-				break;
-			}
-			// 应该移动的值 刷新应该使用的比例
-			modelX = moveX * a / b;
-			modelY = moveY * a / b;
-		}
-
-		gDynamics->mX += finalA;
-		gDynamics->mY += finalB;
+// 克隆一个模拟对象 书中示例
+Object model(gDynamics->mX, gDynamics->mY, gDynamics->mHalfSize);
+// 循环4次判断
+int modelX = moveX;
+int modelY = moveY;
+int a = 1; // 分子
+int b = 1; // 分母
+int finalA = 0;
+int finalB = 0;
+for (int i = 0; i < 4; i++)
+{
+	// 查看模拟对象在移动后是否发生碰撞
+	a *= 2;
+	b *= 2;
+	model.set(gDynamics->mX + modelX, gDynamics->mY + modelY);
+	if (model.isIntersected(*gStatic))
+	{
+		color = 0xffffffff;
+		a -= 1;
+	}
+	else
+	{
+		// 最后输出的值
+		finalA = modelX;
+		finalB = modelY;
+		break;
+	}
+	// 应该移动的值 刷新应该使用的比例
+	modelX = moveX * a / b;
+	modelY = moveY * a / b;
+}
+gDynamics->mX += finalA;
+gDynamics->mY += finalB;
 ```
 
-处理后的代码
+函数封装(自行封装用于理解)
 
 ```C++
-#include "GameLib/Framework.h"
-#include "core/MainFrame.h"
-namespace GameLib {
-
-	class Object
+// 模拟碰撞前停止对象移动
+bool stopMoveBeforePenetration(const Object& object, const int moveX, const int moveY) {
+	// 拷贝一份数据用于模型的尝试移动
+	int moveXCopy = moveX;
+	int moveYCopy = moveY;
+	// 二分法参数
+	int numerator = 1;
+	int denominator = 1;
+	// 循环次数(次数越高精度越高)
+	int loopCount = 4; 
+	// 拷贝一份this模型来测试移动
+	Object model(mX + moveX, mY + moveY, mHalfSize);
+	// 如果没有发生碰撞那么直接输出
+	if (!model.isIntersected(object))
 	{
-	public:
-		Object(int x, int y, int halfSize)
+		mX += moveX;
+		mY += moveY;
+		return false;
+	}
+	for (int i = 0; i < loopCount; i++)
+	{
+		model.set(mX + moveXCopy, mY + moveYCopy);
+		numerator *= 2;
+		denominator *= 2;
+		if (model.isIntersected(object))
 		{
-			mX = x;
-			mY = y;
-			mHalfSize = halfSize;
-		};
-		// 碰撞检测 传入相对的一个对象
-		bool isIntersected(const Object& object)const
-		{
-			// 右边 mx+half
-			// 左边 mx-half
-			int thisObjL = mX - mHalfSize;
-			int thisObjR = mX + mHalfSize;
-
-			int thatObjL = object.mX - object.mHalfSize;
-			int thatObjR = object.mX + object.mHalfSize;
-			//   →+
-			// ↓
-			// +
-			// 向右向下为正坐标
-			// 脑补分析一下
-			// 这里表示如果这个对象的左边的的值小于那个对象的右边那么表示横向相交
-			// 如果这个对象的右边大于那个对象的左边位置表示横向相交
-			// 这里只是横向判断 当横向复合条件时去看纵向的数值
-			if ((thisObjL < thatObjR) && (thisObjR > thatObjL))
-			{
-				//断点走到了这里表示方块的左边或者右边已经侵入
-				int thisObjT = mY - mHalfSize;
-				int thisObjB = mY + mHalfSize;
-
-				int thatObjT = object.mY - object.mHalfSize;
-				int thatObjB = object.mY + object.mHalfSize;
-				// 这边开始判断纵向
-				// 脑补分析
-				// 如果这个对象的顶部坐标小于那个对象的底部坐标那么表示纵向相交
-				// 如果这个对象的底部坐标大于那个对象的顶部坐标那表示纵向相交
-				if ((thisObjT < thatObjB) && (thisObjB > thatObjT))
-				{
-					//当两个条件都满足时表示 纵横都相交
-					return true;
-				}
-			}
-			return false;
+			// 如果碰撞那么数值减半
+			// 分母翻倍  分子*2-1 所以分子永远是1分母会变为2,4,8,16
+			numerator -= 1;
 		}
-		void set(int x, int y)
+		else
 		{
-			mX = x;
-			mY = y;
+			// 没发生碰撞停止循环并输出比例
+			numerator += 1; // 意义不明的加法
+
+			mX += moveXCopy;
+			mY += moveYCopy;
+			return true;
 		}
-		int mX;
-		int mY;
-		int mHalfSize;
-	};
-
-	bool gInit = true;
-	Object* gDynamics;
-	Object* gStatic;
-	unsigned* vram;
-	int vramWidth;
-	int vramHeight;
-	void Framework::update() {
-		if (gInit)
-		{
-			gInit = false;
-			setFrameRate(60);
-			gDynamics = new Object(16, 50, 16);
-			gStatic = new Object(100, 160, 16);
-			vram = Framework::instance().videoMemory();
-			vramWidth = Framework::instance().width();
-			vramHeight = Framework::instance().height();
-		}
-
-		unsigned color = 0xffff0000;// 未碰撞时的颜色
-
-		// 移动控制
-		char keyList[4] = { 'w','s','a','d' };
-		int moveX = 0;
-		int moveY = 0;
-		for (int i = 0; i < sizeof(keyList); i++)
-		{
-			if (isKeyOn(keyList[i]))
-			{
-				switch (keyList[i])
-				{
-				case'w':moveY = -7; break;
-				case's':moveY = +7; break;
-				case'a':moveX = -7; break;
-				case'd':moveX = +7; break;
-				}
-			}
-		}
-		// 克隆一个模拟对象
-		Object model(gDynamics->mX, gDynamics->mY, gDynamics->mHalfSize);
-		// 循环4次判断
-		int modelX = moveX;
-		int modelY = moveY;
-
-		int a = 1; // 分子
-		int b = 1; // 分母
-
-		int finalA = 0;
-		int finalB = 0;
-
-		for (int i = 0; i < 4; i++)
-		{
-			// 查看模拟对象在移动后是否发生碰撞
-			a *= 2;
-			b *= 2;
-			model.set(gDynamics->mX + modelX, gDynamics->mY + modelY);
-			if (model.isIntersected(*gStatic))
-			{
-				color = 0xffffffff;
-				a -= 1;
-			}
-			else
-			{
-				// 最后输出的值
-				finalA = modelX;
-				finalB = modelY;
-				break;
-			}
-			// 应该移动的值 刷新应该使用的比例
-			modelX = moveX * a / b;
-			modelY = moveY * a / b;
-		}
-
-		gDynamics->mX += finalA;
-		gDynamics->mY += finalB;
-
-
-		for (int i = 0; i < vramHeight * vramWidth; i++)
-		{
-			vram[i] = 0x00000000;
-		}
-
-		// 绘制静态对象
-		for (int i = gStatic->mY - gStatic->mHalfSize; i < gStatic->mY - gStatic->mHalfSize + gStatic->mHalfSize * 2; i++)
-		{
-			for (int j = gStatic->mX - gStatic->mHalfSize; j < gStatic->mX - gStatic->mHalfSize + gStatic->mHalfSize * 2; j++)
-			{
-				vram[i * vramWidth + j] = 0xff00ffff;
-			}
-		}
-
-		// 绘制动态对象
-		for (int i = gDynamics->mY - gDynamics->mHalfSize; i < gDynamics->mY - gDynamics->mHalfSize + gDynamics->mHalfSize * 2; i++)
-		{
-			for (int j = gDynamics->mX - gDynamics->mHalfSize; j < gDynamics->mX - gDynamics->mHalfSize + gDynamics->mHalfSize * 2; j++)
-			{
-				vram[i * vramWidth + j] = color;
-			}
-		}
+		// 分母改变后反馈到移动距离再重新判断
+		moveXCopy = moveX * numerator / denominator;
+		moveYCopy = moveY * numerator / denominator;
 	}
 }
 ```
@@ -506,3 +252,129 @@ namespace GameLib {
 - 碰撞的方向\
 	书中给出一个图问你这两个正方形嵌入了多少深,图中很容易看出嵌入多少距离,但是还是给出来不知道的答案\
 	后面也给出来解释<span style='color:yellow'>如果动态方块是左边撞过来的那么距离就是那么点.但是如果方块是右边来的`我也觉得不可思议,但是有很合理`,那个方块一次性跨越了比静态方块的宽要长的距离正好卡在了和左边来时候都相同位置,那嵌入的深度是多少呢,如果他的移动速度再快(单次运动的步长)那它直接就是闪现穿越了静态方块</span>
+
+在移动速度为+-1px的情况下运行(横向判断的模型)
+
+```C++
+gDynamics->mX += moveX;
+gDynamics->mY += moveY;
+if (gDynamics->solvePenetration(*gStatic))
+{
+	color = 0xffffffff;
+	// 右边比较左边  // 重点注意括号 减法带入括号要变号
+	int penetrationFromLeft = (gDynamics->mX + gDynamics->mHalfSize) - (gStatic->mX - gStatic->mHalfSize);
+	int penetrationFromRight = (gStatic->mX + gStatic->mHalfSize) - (gDynamics->mX - gDynamics->mHalfSize);
+	if (penetrationFromLeft < penetrationFromRight)
+	{
+		gDynamics->mX -= penetrationFromLeft;
+	}
+	else
+	{
+		gDynamics->mX += penetrationFromRight;
+	}
+}
+```
+
+左右可以在发生碰撞时停止移动但是在上下时会判断左右的最短的距离向那个方向移动,最后上下移动如果发生碰撞会向斜方向移动
+
+XY轴碰撞后反向移动的代码(函数封装)
+
+```C++
+bool solvePenetration(const Object& object) {
+	// 计算出box的模型大小
+	int thisBoxL = mX - mHalfSize;
+	int thisBoxR = mX + mHalfSize;
+	int thisBoxT = mY - mHalfSize;
+	int thisBoxB = mY + mHalfSize;
+	// 计算出相比较的模型大小
+	int thatBoxL = object.mX - object.mHalfSize;
+	int thatBoxR = object.mX + object.mHalfSize;
+	int thatBoxT = object.mY - object.mHalfSize;
+	int thatBoxB = object.mY + object.mHalfSize;
+	// 判断是否碰撞
+	bool hitX = (thisBoxR > thatBoxL) && (thisBoxL < thatBoxR) ? true : false;
+	bool hitY = (thisBoxB > thatBoxT) && (thisBoxT < thatBoxB) ? true : false;
+	if (hitX && hitY)
+	{
+		// 计算嵌入距离
+		
+		// 修正偏移的方向
+		int reverseX = 0;
+		int reverseY = 0;
+		// 偏移距离
+		int shiftSizeX = 0;
+		int shiftSizeY = 0;
+		int penetrationXR = thisBoxR - thatBoxL;  // 右边进入时
+		int penetrationXL = thatBoxR - thisBoxL;  // 左进入时
+		//GameLib::cout << penetrationXR << ',' << penetrationXL << GameLib::endl;
+		if (penetrationXR < penetrationXL)
+		{
+			reverseX = -1;
+			shiftSizeX += penetrationXR;
+		}
+		else
+		{
+			reverseX = +1;
+			shiftSizeX += penetrationXL;
+		}
+		// 计算嵌入距离
+		int penetrationYT = thisBoxB - thatBoxT;  // 上边进入时
+		int penetrationYB = thatBoxB - thisBoxT;  // 下进入时
+		//GameLib::cout << penetrationXR << ',' << penetrationXL << GameLib::endl;
+		if (penetrationYT < penetrationYB)
+		{
+			reverseY = -1;
+			shiftSizeY += penetrationYT;
+		}
+		else
+		{
+			reverseY = +1;
+			shiftSizeY += penetrationYB;
+		}
+		// 判断是哪个轴进行碰撞
+		// 碰撞数据分析
+		// 1,9 // 比较小的轴就是碰撞的那个轴
+		// 带上符号表示碰撞时需要移动的方向-1为向左移动
+		if (shiftSizeX < shiftSizeY)
+		{
+			mX += shiftSizeX * reverseX;
+		}
+		else
+		{
+			mY += shiftSizeY * reverseY;
+		}
+		GameLib::cout << shiftSizeX * reverseX << ',' << shiftSizeY * reverseY << GameLib::endl;
+		return true;
+	}
+	return false;
+}
+
+```
+
+依然还是高速移动下的问题如果速度是15帧移动会变得诡异
+
+### 8.2.4 哪种方法更好
+
+书中说了没有更好的方法,所有的方法只有适用和适合,实际场景不同用的方法也会不同
+
+## 8.3 发生多个碰撞时的问题
+
+### 8.3.1 如果移动后会发生碰撞则停止移动
+
+书中只有一句话:只要有一个物体发生碰撞就停止移动
+
+### 8.3.2
+
+如果多次迭代"[移动后会发生碰撞则停止移动](#821-如果移动后发生碰撞则停止移动)"就需要对所有物体进行检测使物品移动到可以移动的极限位置
+
+如果采用计算碰撞时刻都做法,就需要求出所有对象的碰撞时刻,把最小值作为结束时刻
+
+### 8.3.3 发生嵌入后再调整
+
+???
+
+### 8.3.4 如何选择
+
+???
+
+## 8.4 碰撞响应与操作性
