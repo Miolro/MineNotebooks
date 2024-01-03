@@ -11,6 +11,11 @@
 
 ## 启动位置和代码
 
+hInstance: 应用程序的当前实例的句柄。\
+hPrevInstance: 上一个实例的句柄\
+lpCmdLine: 指向窗口命令行的指针\
+nCmdShow :控制窗口的显示方式。 此参数可以是可在 ShowWindow 函数的 nCmdShow 参数中指定的任何值。
+
 [Windows SDK 在泛型、 Windows 代码页和 Unicode 版本中提供函数原型](https://learn.microsoft.com/zh-cn/windows/win32/intl/conventions-for-function-prototypes)
 
 关于为什么入口函数不叫WinMain去找了一下资料,当使用不同的字符集时设置的启动入口也会不同
@@ -69,13 +74,39 @@ InitInstance( hInstance, nCmdShow )\
 其中包含窗口全屏设置 窗口位置设置  窗口创建  显示窗口  更新窗口\
 当穿件成功时会往全局的Impl属性管理类中写入窗口句柄
 
+```C++
+ATOM RegisterWindow(HINSTANCE hInstance)
+{
+	WNDCLASSEX wcex;
+
+	wcex.cbSize = sizeof(WNDCLASSEX);
+	/*Class styles*/
+	wcex.style = CS_VREDRAW | CS_HREDRAW;
+	wcex.lpfnWndProc = WndProc;
+	wcex.cbClsExtra = 0;
+	wcex.cbWndExtra = 0;
+	wcex.hInstance = hInstance;
+	wcex.hIcon = NULL;
+	wcex.hCursor = NULL;
+	wcex.hbrBackground = NULL;
+	wcex.lpszMenuName = NULL;
+	wcex.lpszClassName = szClassName;
+	wcex.hIconSm = NULL;
+	return RegisterClassEx(&wcex);
+}
+
+```
+
+
 ## 窗口事件处理
 
 lpfnWndProc
 
 ```C++
-LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
-
+LRESULT CALLBACK WndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
+{
+	return DefWindowProc(hWnd, Msg, wParam, lParam);
+}
 ```
 
 通过message获取到状态枚举
