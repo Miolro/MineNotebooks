@@ -97,6 +97,11 @@ ATOM RegisterWindow(HINSTANCE hInstance)
 
 ```
 
+初始化窗口信息
+
+```C++
+BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
+```
 
 ## 窗口事件处理
 
@@ -110,3 +115,42 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam)
 ```
 
 通过message获取到状态枚举
+
+## 部分宏
+
+忽略这个未使用的传参使他不报错
+
+```C++
+UNREFERENCED_PARAMETER(args)
+```
+
+## 系统API
+
+用于初始化线程,设置并发模型
+
+```C++
+CoInitializeEx( NULL, COINIT_MULTITHREADED );
+```
+
+通过初始的窗口大小和位置加上窗口样式来获取转化后的位置和大小
+
+```C++
+AdjustWindowRect(&rect, WS_ACTIVECAPTION, FALSE);
+```
+
+枚举参数
+
+```C++
+typedef enum tagCOINIT {
+  COINIT_APARTMENTTHREADED = 0x2, // 初始化单元线程对象并发的线程 (请参阅备注) 。
+  COINIT_MULTITHREADED,	// 初始化多线程对象并发的线程 (请参阅备注) 。
+  COINIT_DISABLE_OLE1DDE = 0x4, // 禁用 DDE 以支持 OLE1。
+  COINIT_SPEED_OVER_MEMORY = 0x8  // 增加内存使用量，以尝试提高性能。
+} COINIT;
+
+```
+| 返回代码           | 说明                                                                                                                           |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
+| S_OK               | COM 库在此线程上已成功初始化。                                                                                                   |
+| S_FALSE            | COM 库已在此线程上初始化。                                                                                                       |
+| RPC_E_CHANGED_MODE | 先前对 CoInitializeEx 的调用将此线程的并发模型指定为多线程单元 (MTA) 。 这也可能表明发生了从中性线程单元到单线程单元的更改。                   |
