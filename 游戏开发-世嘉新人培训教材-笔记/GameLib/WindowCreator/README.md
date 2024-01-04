@@ -126,13 +126,13 @@ UNREFERENCED_PARAMETER(args)
 
 ## 系统API
 
-用于初始化线程,设置并发模型
+`用于初始化线程,设置并发模型`
 
 ```C++
 CoInitializeEx( NULL, COINIT_MULTITHREADED );
 ```
 
-通过初始的窗口大小和位置加上窗口样式来获取转化后的位置和大小
+`通过初始的窗口大小和位置加上窗口样式来获取转化后的位置和大小`
 
 ```C++
 AdjustWindowRect(&rect, WS_ACTIVECAPTION, FALSE);
@@ -149,8 +149,45 @@ typedef enum tagCOINIT {
 } COINIT;
 
 ```
-| 返回代码           | 说明                                                                                                                           |
+
+| 返回代码           | 说明                                                                                                                         |
 | ------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
-| S_OK               | COM 库在此线程上已成功初始化。                                                                                                   |
-| S_FALSE            | COM 库已在此线程上初始化。                                                                                                       |
-| RPC_E_CHANGED_MODE | 先前对 CoInitializeEx 的调用将此线程的并发模型指定为多线程单元 (MTA) 。 这也可能表明发生了从中性线程单元到单线程单元的更改。                   |
+| S_OK               | COM 库在此线程上已成功初始化。                                                                                               |
+| S_FALSE            | COM 库已在此线程上初始化。                                                                                                   |
+| RPC_E_CHANGED_MODE | 先前对 CoInitializeEx 的调用将此线程的并发模型指定为多线程单元 (MTA) 。 这也可能表明发生了从中性线程单元到单线程单元的更改。 |
+
+`消息处理`
+
+```C++
+  PeekMessage(&msg, NULL, 0, 0, PM_NOREMOVE)
+```
+
+Pramm1:传入消息结构体的指针\
+Param2:如果 hWnd 为 NULL， PeekMessage 将检索属于当前线程的任何窗口的消息，以及当前线程的消息队列中 hwnd 值为 NULL 的任何消息 (看到 MSG 结构) 。 因此，如果 hWnd 为 NULL，则同时处理窗口消息和线程消息。
+
+```C++
+  GetMessage(&msg,NULL,0,0)
+```
+
+GetMessage 函数类似于 PeekMessage，但是， GetMessage 会阻止消息发布，然后再返回。\
+源码中似乎是为了处理窗口关闭返回的WM_QUIT来处理关闭窗口\
+正常情况应该返回1 WM_QUIT返回0 当发生错误会返回-1\
+代码虽然用的反面栗子,但是在接下去的代码中做了关闭仍然在循环的异常处理
+
+`消息处理`
+
+```C++
+TranslateAccelerator(msg.hwnd, hAcceclTable, &msg)
+```
+
+`消息处理`
+
+```C++
+TranslateAccelerator(msg.hwnd, hAcceclTable, &msg)
+```
+
+| 值                   | 含义                                                                                                                           |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| PM_NOREMOVE `0x0000` | PeekMessage 处理后不会从队列中删除消息。                                                                                       |
+| PM_REMOVE `0x0001`   | PeekMessage 处理后，将从队列中删除消息。                                                                                       |
+| PM_NOYIELD `0x0002`  | 阻止系统释放正在等待调用方进入空闲状态的任何线程， (请参阅 WaitForInputIdle) 。  将此值与 PM_NOREMOVE 或 PM_REMOVE组合在一起。 |
