@@ -17,7 +17,7 @@ namespace GameLib
 		class Impl
 		{
 		public:
-			Impl() :mWidth(320), mHeight(240), mFullScreen(false), mTitle("RemakeFramework"), mWindowCLass("RemakeFramework"), mEndRequest(false)
+			Impl() :mWidth(640), mHeight(480), mFullScreen(false), mTitle("RemakeFramework"), mWindowCLass("RemakeFramework"), mEndRequest(false), mFullScreenForbidden(false), mStarted(false), mMinimized(false), mActive(false)
 			{
 				mThreadId = GetCurrentThreadId();
 			}
@@ -30,8 +30,39 @@ namespace GameLib
 			DWORD mThreadId;
 			HWND mWindowHandle;
 			bool mEndRequest;
+			bool mFullScreenForbidden; // 禁止缩放
+			bool mStarted;
+			RECT mRect;
+			bool mMinimized;
+			bool mActive;
+			/*是否启用全屏*/
+			void enableFullScreen(bool flag)
+			{
+				if (mFullScreen != flag) // 检测两个值是否不同 输入是全屏此时是小屏状态那么设置成全屏状态然后调整窗口大小为全屏大小
+				{
+					if (mStarted) // 检测是否还是在运行的状态
+					{
+						LONG style;
+						if (flag) // 检测是全屏状态还是小屏状态
+						{
+							style = WS_POPUP | WS_VISIBLE;
+							GetWindowRect(mWindowHandle, &mRect);
+							SetWindowLongPtr(mWindowHandle, GWL_STYLE, style);  // 书中设置的是SetWindowLong(hwnd,GWL_STYLE,style)
+							SetWindowPos(mWindowHandle, NULL, 0, 0, mWidth, mHeight, SWP_SHOWWINDOW);
+						}
+						else
+						{
+							style = WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_MAXIMIZEBOX;
+							SetWindowLong(mWindowHandle, GWL_STYLE, style);
+							SetWindowPos(mWindowHandle, NULL, mRect.left, mRect.top, mRect.right - mRect.left, mRect.bottom - mRect.top, SWP_SHOWWINDOW);
+						}
+					}
+					mFullScreen = flag;
+				}
+			}
 		};
 		Impl* gImpl = nullptr;
+
 	}
 	WindowCreator::WindowCreator()
 	{
@@ -65,6 +96,32 @@ namespace GameLib
 	{
 		gImpl->mEndRequest = true;
 	}
+
+	void WindowCreator::enableFullScreen(bool flag)const
+	{
+		// 去调用 gImpl中的全屏函数
+		gImpl->enableFullScreen(flag);
+	}
+
+	void WindowCreator::Configuration::setTitle(const char* title)
+	{
+		gImpl->mTitle = title;
+	}
+
+	void WindowCreator::Configuration::setWidth(int width)
+	{
+		gImpl->mWidth = width;
+	}
+	void WindowCreator::Configuration::setHeight(int height)
+	{
+		gImpl->mHeight = height;
+	}
+
+	void WindowCreator::Configuration::enableFullScreen(bool flag)
+	{
+		gImpl->enableFullScreen(flag);
+	}
+
 	/*ender{}ender*/
 }
 
@@ -72,15 +129,56 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	switch (msg)
 	{
-	case WM_CLOSE:
+	case WM_CLOSE: // 窗口关闭时优先执行这个
 		gImpl->mEndRequest = true;
 		break;
-	case WM_DESTROY:
+	case WM_DESTROY: // 调用DestroyWindow时调用这个
 		PostQuitMessage(0);
+		break;
+	case WM_SYSKEYDOWN:
+		// 是否禁止缩放  // 需要下压ALT后下压ENTER键
+		std::cout << "1" << std::endl;
+		if (!gImpl->mFullScreenForbidden && wParam == VK_RETURN)
+		{
+			if (gImpl->mFullScreen)
+			{
+				WindowCreator().enableFullScreen(false);
+			}
+			else
+			{
+				WindowCreator().enableFullScreen(true);
+			}
+		}
+		return DefWindowProc(hWnd, msg, wParam, lParam);
+	case WM_SYSCOMMAND: // 窗口控件执行 最大化直接会变为全屏....不知道为什么要这样设计
+		if (wParam == SC_MAXIMIZE)
+		{
+			if (!gImpl->mFullScreenForbidden)
+			{
+				WindowCreator().enableFullScreen(true); // 最大化时不要调用DefWindowProc
+			}
+		}
+		else if (wParam == SC_MINIMIZE)
+		{
+			gImpl->mMinimized = true;
+			gImpl->mActive = false;
+			DefWindowProc(hWnd, msg, wParam, lParam);
+		}
+		else if (wParam == SC_RESTORE)
+		{
+			gImpl->mMinimized = false;
+			gImpl->mActive = true;
+			DefWindowProc(hWnd, msg, wParam, lParam);
+		}
+		else
+		{
+			DefWindowProc(hWnd, msg, wParam, lParam);
+		}
 		break;
 	default:
 		return DefWindowProc(hWnd, msg, wParam, lParam);
 	}
+	return 0;
 }
 
 
@@ -168,6 +266,7 @@ int APIENTRY WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLi
 	{
 		return FALSE;
 	}
+	gImpl->mStarted = true; // 循环启动信号
 	HWND hWnd = gImpl->mWindowHandle;
 	// 加速表??  热键
 	hAcceclTable = LoadAcceleratorsA(hInstance, MAKEINTRESOURCE(109));

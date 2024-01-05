@@ -19,6 +19,17 @@ namespace GameLib
 		bool isEndRequested()const;
 		// 发出停止信号
 		void requestEnd()const;
+		// 全屏信号
+		void enableFullScreen(bool flag)const;
+		class Configuration
+		{
+			void setTitle(const char* title);
+
+			void setWidth(int width);
+			void setHeight(int height);
+
+			void enableFullScreen(bool flag);
+		};
 	};
 }
 #include "../GameLib.h"
