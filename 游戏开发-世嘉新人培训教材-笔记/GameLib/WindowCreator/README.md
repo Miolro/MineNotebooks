@@ -191,3 +191,35 @@ TranslateAccelerator(msg.hwnd, hAcceclTable, &msg)
 | PM_NOREMOVE `0x0000` | PeekMessage 处理后不会从队列中删除消息。                                                                                       |
 | PM_REMOVE `0x0001`   | PeekMessage 处理后，将从队列中删除消息。                                                                                       |
 | PM_NOYIELD `0x0002`  | 阻止系统释放正在等待调用方进入空闲状态的任何线程， (请参阅 WaitForInputIdle) 。  将此值与 PM_NOREMOVE 或 PM_REMOVE组合在一起。 |
+
+程序主循环
+
+```C++
+if (gImpl->mEnded)
+		{ // 如果没有结束则更新循环
+			if (windowHandle)
+			{ // 也许两次，以防万一
+				DestroyWindow(windowHandle);
+				windowHandle = 0;
+			}
+		}
+		else
+		{ //
+			try
+			{
+        // 会执行这里然后调用更新代码
+				wc.update();
+			}
+			catch (Exception e)
+			{
+				if (e == EXCEPTION_EXIT)
+				{ // 仅在终止请求的情况下终止
+					MessageBoxA(
+						windowHandle,
+						"致命的な問題があり、継続できません。申し訳ありませんが終了いたします",
+						"致命的エラー",
+						MB_OK | MB_ICONERROR);
+				}
+			}
+		}
+```
