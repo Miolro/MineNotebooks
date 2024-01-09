@@ -270,3 +270,53 @@ void Title::update(Parent* parent)
 通过不同的对象来优化掉switch分支
 
 ### 10.4.3 示例代码
+
+略 去看我写的源码
+
+## 10.5 补充内容:跨层级的状态迁移处理和改进
+
+主要关注两个Parent的Cpp文件
+
+代码在Code多层级下的状态迁移里面有迁移过程的备注
+
+`正向随便带带`
+
+启动流程 foo->激活parent.cpp的更新->初始化后进入Title.cpp->更新时按空格->这个时候会迁移到GameParent.cpp->初始化Ready->执行update()
+
+`反向详细讲`
+
+Ready.cpp更新时空格切换到Title.cpp->进行一个dynamic_cast<Game::GameChild>->此时的Titlt不属于GameChild管理(派生)的类所以转型失败->转而返回Ready.update()返回的title对象交给Parent处理
+->如果上层的Parent可以处理那么就是Child管理的(派生类)那么就执行这个Parent的代码
+
+### 10.5.1 dynamic_cast
+
+可以转换基类和派生类转换成功返回地址不然就会返回空对象(0x00000000)
+
+### 10.5.2 重新定义每个层级的基类
+
+略  看代码
+
+### 10.5.3 示例代码
+
+不同于书中给的迭代出来的代码 这边用更加简单的结构重写了一次
+
+------`base`------`Parent`
+|
+|-----`Child`-----`Title`
+|&nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;|---`Game::GameParent`
+|
+|-----`Game::GameChild`----`Ready`
+
+主题逻辑应该是差不多的只是少了对上级Parent传参
+
+### 10.5.4 使用该方法的必要性(全是吐槽)
+
+吐槽:感谢笔者问候害我脑子宕机了两天
+
+但是不得不说接触没接触过的东西确实让我这个不会用抽象继承的人稍稍感觉到震撼,好用是好用但是理逻辑理起来是真的费脑
+
+读者表示:可以用但是在查缺少实现哪个方法时候找了一下午,第二天发现Ready的update的头文件里少写继承了一个方法,想了半天为什么new 不出GameParent,原来我当时又少继承了一个方法,总之处理这些光报Line:1 xxx.obj挺头疼的
+
+## 10.6 继承原理
+
+略 看会数先
