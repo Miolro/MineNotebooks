@@ -70,3 +70,214 @@ $\therefore cos(x) = sin(90°-x)$
 
 **泰勒展开**
 
+用像素画一个圆形
+
+```C++
+#include "GameLib/Framework.h"
+#include "GameLib/Math.h"
+namespace GameLib
+{
+	bool init = false;
+	unsigned* vram;
+	int round(float num)
+	{
+		int result = num;
+		if (num > 0)
+		{
+			result = num + 0.5;
+		}
+		else
+		{
+			result = num - 0.5;
+		}
+		return result;
+	}
+
+	void Framework::update()
+	{
+		int centerX = 60;  // 圆心横坐标
+		int centerY = 60;  // 圆心纵坐标
+
+		int radius = 30;   // 半径
+
+		if (!init)
+		{
+			vram = videoMemory();
+			init = true;
+		}
+		float x = 0.0f;
+		float y = 0.0f;
+        // 360 是画出来的角度 0 是起始角度
+		for (int rad = 0; rad < 360; rad++)
+		{
+			x = sin(rad);
+			y = cos(rad);
+			int oy = round(radius * y + centerX);
+			int ox = round(radius * x + centerY);
+			vram[oy * width() + ox] = 0xFFFFFFFF;
+		}
+	}
+}
+
+```
+
+**图片顺时针旋转**
+
+```C++
+#include "GameLib/Framework.h"
+#include "GameLib/Math.h"
+#include <fstream>
+class File
+{
+public:
+	File(const char*);
+	~File();
+	unsigned getEndia(int position);
+private:
+
+	unsigned char* mFileByte;
+};
+
+File::File(const char* fileName)
+{
+	std::ifstream imageFileBuffer(fileName, std::ios::binary);
+	imageFileBuffer.seekg(0, std::ios::end);
+	int fileSize = imageFileBuffer.tellg();
+	imageFileBuffer.seekg(0, std::ios::beg);
+	char* originFileByte = new char[fileSize];
+	imageFileBuffer.read(originFileByte, fileSize);
+	mFileByte = reinterpret_cast<unsigned char*>(originFileByte); // 指针指向originFile 只需要回收一个即可
+}
+
+File::~File()
+{
+	SAFE_DELETE_ARRAY(mFileByte);
+}
+
+unsigned File::getEndia(int position)
+{
+	return mFileByte[position] | mFileByte[position + 1] << 8 | mFileByte[position + 2] << 2 * 8 | mFileByte[position + 3] << 3 * 8;
+}
+
+class Image
+{
+public:
+	Image(const char*);
+	~Image();
+	int iWidth();
+	int iHeight();
+	unsigned pixel(int x, int y);
+private:
+	int mWidth;
+	int mHeight;
+	unsigned* mPiexlInfo;
+};
+
+Image::Image(const char* fileName)
+{
+	File file(fileName);
+	mHeight = file.getEndia(0x0c);
+	mWidth = file.getEndia(0x10);
+	mPiexlInfo = new unsigned[mHeight * mWidth];
+	for (int i = 0; i < mHeight * mWidth; i++)
+	{
+		mPiexlInfo[i] = file.getEndia(i * 4 + 0x80);
+	}
+}
+
+Image::~Image()
+{
+	SAFE_DELETE_ARRAY(mPiexlInfo);
+}
+int Image::iWidth()
+{
+	return mWidth;
+}
+
+int Image::iHeight()
+{
+	return mHeight;
+}
+
+unsigned Image::pixel(int x, int y)
+{
+	return mPiexlInfo[y * mWidth + x];
+}
+
+namespace GameLib
+{
+	int round(double a)
+	{
+		a += (a > 0.0) ? 0.5 : -0.5f;
+		return static_cast<int>(a);
+	}
+	void transformPosition(int* oX, int* oY, int iX, int iY, double offsetX, double offsetY, double radius)
+	{
+		double dX = static_cast<double>(iX);
+		double dY = static_cast<double>(iY);
+
+		dX += 0.5f;
+		dY += 0.5f;
+		// 你可以脑补到一个图片向左向上移动他的坐标
+		// 此时的图像以左上角为原点
+		// 如果不这样做那么他会把整个图片绕着屏幕左上角的点旋转和大风车一样
+		dX -= offsetX;
+		dY -= offsetY;
+		// 求出那个坐标距离原点的距离  勾股定理很好理解
+		double r = sqrt(dX * dX + dY * dY);
+		// 然后是角度  使用反向tan 给出两条边求出角度
+		double angle = atan2(dY, dX);
+		// 原角度radius和angle偏移角度相加
+		angle += radius;
+		// 变化后的角度求出x和y与斜边比例
+		double sine = sin(angle);		// y
+		double cosine = cos(angle);		// x
+		// 乘比例得到最后xy坐标
+		dX = r * cosine;
+		dY = r * sine;
+		// 将图片位置还原
+		dX += offsetX;
+		dY += offsetY;
+		dX -= 0.5f;
+		dY -= 0.5f;
+		*oX = round(dX);
+		*oY = round(dY);
+	}
+
+	bool init = true;
+	unsigned* vram;
+	int gCount = 0;
+	Image* gImage;
+	void Framework::update() {
+		if (init) {
+			gImage = new Image("E:/environment/GameLib/src/03_2DGraphics2/displayImage/bar.dds");
+			init = false;
+		}
+		unsigned* vram = videoMemory();
+		int ww = width(); //window width
+		int wh = height(); //window height
+		//全黑
+		for (int i = 0; i < ww * wh; ++i) {
+			vram[i] = 0;
+		}
+		int iw = gImage->iWidth(); //image width
+		int ih = gImage->iHeight(); //image height
+		double offsetX = static_cast<double>(iw) / 2.0;
+		double offsetY = static_cast<double>(ih) / 2.0;
+
+		double rotation = static_cast<double>(gCount);
+		for (int y = 0; y < ih; ++y) {
+			for (int x = 0; x < iw; ++x) {
+				//计算轮换目的地
+				int rx, ry;
+				transformPosition(&rx, &ry, x, y, offsetX, offsetY, rotation);
+				//如果在范围内则粘贴
+				if (rx >= 0 && rx < ww && ry >= 0 && ry < wh) {
+					vram[ry * ww + rx] = gImage->pixel(x, y);
+				}
+			}
+		}
+		++gCount;
+	}
+}
+```
