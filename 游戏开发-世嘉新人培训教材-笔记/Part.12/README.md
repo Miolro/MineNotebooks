@@ -319,6 +319,7 @@ namespace GameLib
 
 ## 12.2 引入向量和矩阵
 
+其实就是打包数据方便计算出错  矩阵也是一样  至于矩阵的四个值是怎么来的需要在纸上计算作者似乎说在12.8(插眼)会有推导说明
 
 引入向量Vector
 
@@ -503,6 +504,243 @@ namespace GameLib
 				}
 			}
 		}
+		++gCount;
+	}
+}
+```
+
+```C++
+	/*param1 需要输出的向量  param2输入的向量 param3 中心坐标 param4 2*2矩阵 oVector是输出的旋转后的坐标*/
+	void transformPosition(Vector* oVector, Vector& iVector, const Vector& offset, Matrix22 matrix)
+	{
+		//初始化outVector 使用operator=来深拷贝数值
+		*oVector = iVector;
+		// 偏移到圆心
+		*oVector -= offset;
+		// 矩阵相乘
+		matrix.multiply(oVector, *oVector);
+		// 还原图像
+		*oVector += offset;
+
+	}
+```
+
+## 12.3 利用定点来实现
+
+```C++
+#include "GameLib/Framework.h"
+#include "GameLib/Math.h"
+#include <fstream>
+/*--------------------------------------------*/ // File
+class File
+{
+public:
+	File(const char*);
+	~File();
+	unsigned getEndia(int position);
+private:
+
+	unsigned char* mFileByte;
+};
+File::File(const char* fileName)
+{
+	std::ifstream imageFileBuffer(fileName, std::ios::binary);
+	imageFileBuffer.seekg(0, std::ios::end);
+	int fileSize = imageFileBuffer.tellg();
+	imageFileBuffer.seekg(0, std::ios::beg);
+	char* originFileByte = new char[fileSize];
+	imageFileBuffer.read(originFileByte, fileSize);
+	mFileByte = reinterpret_cast<unsigned char*>(originFileByte); // 指针指向originFile 只需要回收一个即可
+}
+File::~File()
+{
+	SAFE_DELETE_ARRAY(mFileByte);
+}
+unsigned File::getEndia(int position)
+{
+	return mFileByte[position] | mFileByte[position + 1] << 8 | mFileByte[position + 2] << 2 * 8 | mFileByte[position + 3] << 3 * 8;
+}
+/*--------------------------------------------*/ // Image
+class Image
+{
+public:
+	Image(const char*);
+	~Image();
+	int iWidth();
+	int iHeight();
+	unsigned pixel(int x, int y);
+private:
+	int mWidth;
+	int mHeight;
+	unsigned* mPiexlInfo;
+};
+Image::Image(const char* fileName)
+{
+	File file(fileName);
+	mHeight = file.getEndia(0x0c);
+	mWidth = file.getEndia(0x10);
+	mPiexlInfo = new unsigned[mHeight * mWidth];
+	for (int i = 0; i < mHeight * mWidth; i++)
+	{
+		mPiexlInfo[i] = file.getEndia(i * 4 + 0x80);
+	}
+}
+Image::~Image()
+{
+	SAFE_DELETE_ARRAY(mPiexlInfo);
+}
+int Image::iWidth()
+{
+	return mWidth;
+}
+int Image::iHeight()
+{
+	return mHeight;
+}
+unsigned Image::pixel(int x, int y)
+{
+	return mPiexlInfo[y * mWidth + x];
+}
+/*--------------------------------------------*/ // Vector
+class Vector
+{
+public:
+	Vector(); // 空向量
+	Vector(int x, int y); // 带有值的初始化向量 int
+	Vector(double x, double y);
+	~Vector();
+
+	void operator+=(const Vector&); // 向量加法
+	void operator-=(const Vector&);	// 向量减法
+	void operator=(const Vector&);	// 向量复制
+
+	//向量 
+	double x;
+	double y;
+};
+Vector::Vector() :x(0), y(0) {}
+Vector::Vector(int ix, int iy)
+{
+	x = static_cast<double>(ix);
+	y = static_cast<double>(iy);
+};
+Vector::Vector(double ix, double iy) :x(ix), y(iy) {}
+Vector::~Vector() {}
+void Vector::operator+=(const Vector& thatVector)
+{
+	x += thatVector.x;
+	y += thatVector.y;
+}
+void Vector::operator-=(const Vector& thatVector)
+{
+	x -= thatVector.x;
+	y -= thatVector.y;
+}
+void Vector::operator=(const Vector& thatVector)
+{
+	x = thatVector.x;
+	y = thatVector.y;
+}
+/*--------------------------------------------*/ // Matrix
+class Matrix22  // 2*2的矩阵
+{
+public:
+	Matrix22(double im00, double im01, double im10, double im11);
+	~Matrix22();
+	void multiply(Vector* out, const Vector& in)const;
+
+	double m00, m01, m10, m11;
+private:
+
+};
+
+Matrix22::Matrix22(double im00, double im01, double im10, double im11) :
+	m00(im00), m01(im01), m10(im10), m11(im11)
+{
+}
+
+Matrix22::~Matrix22()
+{
+}
+void Matrix22::multiply(Vector* out, const Vector& in)const
+{
+	double tempx = in.x;
+	double tempy = in.y;
+
+	out->x = tempx * m00 + tempy * m01;
+	out->y = tempx * m10 + tempy * m11;
+}
+/*--------------------------------------------*/ // MainLoop
+namespace GameLib
+{
+	int round(double a)
+	{
+		a += (a > 0.0) ? 0.5 : -0.5f;
+		return static_cast<int>(a);
+	}
+	void transformPosition(Vector* oVector, Vector& iVector, const Vector& offset, Matrix22 matrix)
+	{
+		//初始化outVector 使用operator=来深拷贝数值
+		*oVector = iVector;
+		// 偏移到圆心
+		*oVector -= offset;
+		// 矩阵相乘
+		matrix.multiply(oVector, *oVector);
+		// 还原图像
+		*oVector += offset;
+
+	}
+
+	bool init = true;
+	unsigned* vram;
+	int gCount = 0;
+	Vector Oa(0, 0), Ob(100.0, 0.0), Oc(0.0, 100.0); 	// 首先是需要三个角点  分别是(0,0) (4,0) (0,4)
+	Vector Oo(50.0, 50.0);								// 原点坐标
+	void Framework::update() {
+		if (init) {
+			init = false;
+			vram = videoMemory();
+		}
+		Matrix22 matrix22(cos(gCount), -sin(gCount), sin(gCount), cos(gCount));
+		// 对角点进行旋转
+		Vector tmp(0, 0);
+		transformPosition(&tmp, Oa, Oo, matrix22);
+		int x = round(tmp.x);
+		int y = round(tmp.y);
+		if (y >= 0 && x >= 0)
+		{
+			vram[y * width() + x] = 0xffffffff;
+		}
+
+		transformPosition(&tmp, Ob, Oo, matrix22);
+		x = round(tmp.x);
+		y = round(tmp.y);
+		if (y >= 0 && x >= 0)
+		{
+			vram[y * width() + x] = 0xffffff00;
+		}
+
+		transformPosition(&tmp, Oc, Oo, matrix22);
+		x = round(tmp.x);
+		y = round(tmp.y);
+		if (y >= 0 && x >= 0)
+		{
+			vram[y * width() + x] = 0xffff00ff;
+		}
+
+
+
+		//int bx = round(Ob.x);
+		//int by = round(Ob.y);
+
+		//int cx = round(Oc.x);
+		//int cy = round(Oc.y);
+
+		vram[50 * width() + 50] = 0xffffff00;
+		//vram[by * width() + bx] = 0xffffffff;
+		//vram[cy * width() + cx] = 0xffffffff;
+
+
 		++gCount;
 	}
 }
