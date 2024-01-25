@@ -1314,3 +1314,18 @@ namespace GameLib
 	}
 }
 ```
+
+## 12.6 矩阵的力量
+
+使用举证把图像变化操作进行封装
+
+**移动 transfromMove.cpp**
+
+```C++
+	void transformMove(Vector2* oVector, const Vector2& iVector, const Matrix23 matrix)
+	{
+		// 使用矩阵对向量做移动操作
+		oVector->x = matrix.m00 * iVector.x + matrix.m01 * iVector.y + matrix.m02 * 1;
+		oVector->y = matrix.m10 * iVector.x + matrix.m11 * iVector.y + matrix.m12 * 1;
+	}
+```
