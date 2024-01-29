@@ -527,8 +527,11 @@ namespace GameLib
 
 ## 12.3 利用定点来实现
 
+<<<<<<< HEAD
 顶点旋转
 
+=======
+>>>>>>> f0797de190556595df855b6b7f442324121b6e19
 ```C++
 #include "GameLib/Framework.h"
 #include "GameLib/Math.h"
