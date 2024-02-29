@@ -39,6 +39,8 @@ namespace Game
 		Vector2 findInBlock();
 		bool isDead()const;  // 检查对象的mType是否为NONE来返回这个对象是否存活
 		void die();
+		int getBakudanPower();
+		Game::DynamicObject::Type getType();
 		//不是很懂为什么要把炸弹数分配给动态对象  这个不是应该保存在静态对象里或者地图里比较好吗
 		//int mbakudaX[10];
 		//int mbakudaY[10];
@@ -47,6 +49,7 @@ namespace Game
 		int innnerX;
 		int innnerY;
 		double mSpeed;
+		int mPower = 2;
 		//bool isDead; // 不需要这个属性
 	};
 }

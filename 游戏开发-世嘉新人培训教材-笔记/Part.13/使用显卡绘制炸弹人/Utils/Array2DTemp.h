@@ -8,6 +8,7 @@ public:
 	};
 	~Array2DTemplate()
 	{
+		SAFE_DELETE_ARRAY(arrayData);
 	};
 	void setSize(int irows, int icols)
 	{

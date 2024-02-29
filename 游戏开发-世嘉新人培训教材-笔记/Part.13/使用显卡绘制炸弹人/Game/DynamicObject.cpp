@@ -69,7 +69,8 @@ namespace Game
 		}
 		else if (mType & Type::MONSTER)
 		{
-
+			*dx = frame.getRandom(2) - 1;  //   百分之33.3的概率移动方向
+			*dy = frame.getRandom(2) - 1;  //   百分之33.3的概率移动方向
 		}
 	}
 	//  计算速度
@@ -81,6 +82,11 @@ namespace Game
 		{
 			speedX = PLATER_SPEED;
 			speedY = PLATER_SPEED;
+		}
+		else if (mType & Type::MONSTER)
+		{
+			speedX = ENEMY_SPEED;
+			speedY = ENEMY_SPEED;
 		}
 		getDirction(dx, dy);
 		*dx = *dx * speedX;
@@ -95,12 +101,15 @@ namespace Game
 
 	void DynamicObject::draw(const Image* image)const
 	{
-
+		int piexlX = convertInnerToPiexl(innnerX);
+		int piexlY = convertInnerToPiexl(innnerY);
 		if (mType & Type::PLAYER1)
 		{
-			int piexlX = convertInnerToPiexl(innnerX);
-			int piexlY = convertInnerToPiexl(innnerY);
 			image->drawTexture(piexlX, piexlY, 0, 0, 16, 16);
+		}
+		else if (mType & Type::MONSTER)
+		{
+			image->drawTexture(piexlX, piexlY, 32, 16, 16, 16);
 		}
 
 	}
@@ -129,19 +138,36 @@ namespace Game
 				hitY = hit = true;
 			}
 		}
-		if (hitX && !hitY)
+		// hit判断使动态对象无法在输入两个方向时穿墙
+		if (hit)
 		{
-			innnerY += dy;
-		}
-		else if (!hitX && hitY)
-		{
-			innnerX += dx;
+			if (hitX && !hitY)
+			{
+				innnerY += dy;
+			}
+			else if (!hitX && hitY)
+			{
+				innnerX += dx;
+			}
 		}
 		else
 		{
 			innnerX += dx;
 			innnerY += dy;
 		}
+		// 下面的代码会导致输入两个方向后穿墙  需要使用hit判断来禁用两个方向的移动
+		//if (hitX && !hitY)
+		//{
+		//	innnerY += dy;
+		//}
+		//else if (!hitX && hitY)
+		//{
+		//	innnerX += dx;
+		//}else
+		//{
+		//	innnerX += dx;
+		//	innnerY += dy;
+		//}
 
 	}
 	// 碰撞检测 传入左上角和右下角坐标 方向
@@ -180,6 +206,16 @@ namespace Game
 	void DynamicObject::die()
 	{
 		mType = DynamicObject::Type::NONE;
+	}
+
+	int DynamicObject::getBakudanPower()
+	{
+		return mPower;
+	}
+
+	Game::DynamicObject::Type DynamicObject::getType()
+	{
+		return mType;
 	}
 
 	//Vector2 DynamicObject::findInBlock()

@@ -18,7 +18,7 @@ namespace Game
 	Base* Ending::update(Game::Parent* parent)
 	{
 		mBackground->drawTexture(640, 480);
-		GameLib::Framework::instance().drawDebugString(56, 24, "END.....PUT KEY:J TO CONTINUE");
+		GameLib::Framework::instance().drawDebugString(23, 24, "END.....PUT KEY:W TO CONTINUE");
 		if (Pad::isOn(Pad::W))
 		{
 			return new Sequence::Title();

@@ -8,7 +8,7 @@ namespace Game
 		// 地图生成
 		mImage = new Image("data/BakudanBitoImage.dds");
 		mStaticObjects.setSize(WIDTH, HEIGHT);
-		dyObject = new DynamicObject[1];
+		dyObject = new DynamicObject[6];
 		for (int y = 0; y < HEIGHT; y++)
 		{
 			for (int x = 0; x < WIDTH; x++)
@@ -39,37 +39,58 @@ namespace Game
 		dyObject[0].set(1, 2, DynamicObject::Type::PLAYER1);
 		int x; int y;
 		dyObject[0].getCell(&x, &y);
-
+		// 使玩家周围的方块清空
+		mStaticObjects(x, y).resetFlag(StaticObject::Flag::FLAG_BRICK);
 		mStaticObjects(x + 1, y).resetFlag(StaticObject::Flag::FLAG_BRICK);
 		mStaticObjects(x - 1, y).resetFlag(StaticObject::Flag::FLAG_BRICK);
 		mStaticObjects(x, y + 1).resetFlag(StaticObject::Flag::FLAG_BRICK);
 		mStaticObjects(x, y - 1).resetFlag(StaticObject::Flag::FLAG_BRICK);
-		// 初始化炸弹池
-
+		// 生成敌人
+		dyObject[1].set(5, 5, DynamicObject::Type::MONSTER);
+		//dyObject[2].set(5, 5, DynamicObject::Type::MONSTER);
+		//dyObject[3].set(5, 5, DynamicObject::Type::MONSTER);
+		//dyObject[4].set(5, 5, DynamicObject::Type::MONSTER);
+		//dyObject[5].set(5, 5, DynamicObject::Type::MONSTER);
 	}
 	State::~State()
 	{
-
+		SAFE_DELETE(mImage);
+		SAFE_DELETE(dyObject);
 	}
 	State::Flag State::update()
 	{
+		GameLib::Framework frame = GameLib::Framework::instance();
 		// 获取当前在Cell的位置
 		int dx, dy;
 		// 碰撞检测
 		int wallsX[9];
 		int wallsY[9];
-		dyObject[0].getCell(&dx, &dy);
+		bool haveMonster = false;
 		//这样判断火焰碰撞似乎不太严格
-		if (mStaticObjects(dx, dy).checkFlag(StaticObject::Flag::FLAG_FIRE_Y | StaticObject::Flag::FLAG_FIRE_X | StaticObject::Flag::FLAG_FIRE_ORIGIN))
+
+		for (int i = 0; i < 6; i++)
 		{
-			dyObject[0].die();
+			dyObject[i].getCell(&dx, &dy);
+			if (mStaticObjects(dx, dy).checkFlag(StaticObject::Flag::FLAG_FIRE_Y | StaticObject::Flag::FLAG_FIRE_X | StaticObject::Flag::FLAG_FIRE_ORIGIN))
+			{
+				dyObject[i].die();
+			}// 默认false  那么就会去检查是否存在敌人  只要有一个敌人那就会变为true之后就不会计入判断（有一个敌人存在就继续判断）
+			if (!haveMonster)
+			{
+				haveMonster = dyObject[i].getType() & DynamicObject::Type::MONSTER;
+			}
+		}
+		if (!haveMonster)
+		{
+			// 胜利条件  怪物清除  没做胜利界面
+			return State::LOSE;
 		}
 		if (dyObject[0].isDead()) {
 			// 玩家已经死亡那么就显示结束页面
 			return State::Flag::LOSE;
 		}
 		// 未死亡就去判断是否在火焰范围中
-
+		dyObject[0].getCell(&dx, &dy);
 		int wallNumber = 0;
 		// 以动态对象为中心的十字上下左右各一格
 		for (int y = 0; y < 3; y++)
@@ -92,13 +113,36 @@ namespace Game
 		}
 		dyObject->move(wallsX, wallsY, wallNumber);
 
+		wallNumber = 0;
+		dyObject[1].getCell(&dx, &dy);
+		for (int y = 0; y < 3; y++)
+		{
+			for (int x = 0; x < 3; x++)
+			{
+				// *需要计算当前位置的9宫格位置  不能直接以循环的x和y去二维数组里取对象mStaticObjects(x, y);<-像这样
+				// *这样取的位置是相对与地图二维素组的  而不是相对于当前玩家的位置
+				StaticObject& staObj = mStaticObjects(dx + x - 1, dy + y - 1);
+				// 如果是墙体或者可破坏方块那么放入到对象中 | 允许移动但是致密的格子
+				if (staObj.checkFlag(StaticObject::Flag::FLAG_WALL | StaticObject::Flag::FLAG_BRICK))
+				{
+					// 这边主要是获取墙的横向坐标和纵向坐标
+					wallsX[wallNumber] = dx + x - 1;
+					wallsY[wallNumber] = dy + y - 1;
+					wallNumber++;
+				}
+			}
+		}
+		dyObject[1].move(wallsX, wallsY, wallNumber);
+
+
 		// 设置爆炸信息
-		if (dyObject->hasBombButtonPressed())
+		if (dyObject[0].hasBombButtonPressed())
 		{
 			// 在地图上的位置D
+			dyObject[0].getCell(&dx, &dy);
 			StaticObject& staObj = mStaticObjects(dx, dy);
 			// 可以设置                 爆炸时间/爆炸威力
-			if (staObj.setBakudan(LAST_BOOM_TIME, 3))
+			if (staObj.setBakudan(LAST_BOOM_TIME, dyObject[0].getBakudanPower()))
 			{
 				for (int i = 0; i < 15; i++)
 				{
@@ -213,5 +257,6 @@ namespace Game
 		}
 
 		dyObject[0].draw(mImage);
+		dyObject[1].draw(mImage);
 	}
 }
