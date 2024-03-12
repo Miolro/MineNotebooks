@@ -120,3 +120,68 @@ $f(b,a) = b+t(a-b) =b+ta-tb$
   - $\sqrt{(X_b-X_a)^2+(Y_b-Y_a)^2+(Z_b-Z_a)^2}$
 - 将物体变小的方法
   - 现在要解决的问题是“被除数应该取什么值”
+
+使用Z轴来当作比例放大的除数,如果离得越近,除数越小，除数越小商越大
+
+但是又衍生出一个问题设定顶点如果Z值超过1或者小于0那么就会使画面消失
+
+以及在计算时除数为零时无意义
+
+如何避免呢：既然是比例尺放大那么我们移动z轴使范围从0-1变为1-2
+
+那Z轴相对*2了那么其他的参数也要相对的\*2以保持比例与范围0-1时的比例一致
+
+```C++
+#include "foo.h"
+#include "GameLib/Framework.h"
+#define Z_MAX_RANGE 2
+#define Z_MIN_RANGE 1
+namespace GameLib
+{
+	double count = 0;
+	bool isInit = false;
+	double position = Z_MIN_RANGE * 1000;
+	int dist = 1;
+	void Framework::update()
+	{
+		if (!isInit)
+		{
+			isInit = true;
+		}
+
+		enableDepthTest(true);
+		setBlendMode(BLEND_LINEAR);
+		enableDepthWrite(true);  // 为true时此时的倒三角中的颜色不正常  重叠区域理论上应该发生像素颜色混合  颜色应该与正三角的颜色一致
+		// 深度距离z在0-1的范围中可以显示  如果超出了范围那么就不能显示了eg：-0.1 或是 2
+		// 以下处理结束后使z不会因为为0时让图像消失  在某个值时突然覆盖整个画面
+		double maxRange = 1000 * Z_MAX_RANGE;  // 使最大的Z为2  保证补间比例没有被扩大
+		double minRange = 1000 * Z_MIN_RANGE;  // 使最小值Z为1  保证补间比例没有被扩大
+
+		double resize = position / maxRange;  // 初始化图像  当前位置距离最大位置的比例
+		//  经过比例1000的放大之后  position从0-1000来到了1000-2000 相对的maxRange也一样放大比例这样就保证不会因为移动Z轴区间导致图像比例错误
+
+		//  距离与点位的比例
+		double point0[3] = { 0.0 / resize,0.0 / resize ,resize };
+		double point1[3] = { 300.0 / resize,0.0 / resize ,resize };
+		double point2[3] = { 0.0 / resize,300.0 / resize ,resize };
+		unsigned c = 0x80555555;
+		drawTriangle3D(point0, point1, point2, 0, 0, 0, c, c, c);
+
+		double point3[3] = { 300.0 / resize,300.0 / resize ,resize };
+		double point4[3] = { 300.0 / resize,0.0 / resize ,resize };
+		double point5[3] = { 0.0 / resize,300.0 / resize ,resize };
+		c = 0x80555555;
+		drawTriangle3D(point3, point4, point5, 0, 0, 0, c, c, c);
+		if ((position += dist) > maxRange)
+		{
+			dist = -1;
+		}
+		if ((position += dist) < minRange)
+		{
+			dist = 1;
+		}
+	}
+}
+
+```
+
