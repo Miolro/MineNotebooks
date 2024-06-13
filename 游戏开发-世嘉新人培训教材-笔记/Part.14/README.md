@@ -298,8 +298,220 @@ $$结果是$$
 $$b = {\frac{n}{n-f}}$$
 $$a = {\frac{1}{n-f}}$$
 
-这里n表示近裁剪面`near clip`,f表示远裁剪面`far clip`
+这里 n 表示近裁剪面`near clip`,f 表示远裁剪面`far clip`
 
 ### 14.6.3 矩阵与向量的扩充
 
-一个四边形需要4个顶点，需要利用矩阵完成移动，缩放，旋转
+一个四边形需要 4 个顶点，需要利用矩阵完成移动，缩放，旋转
+
+### 14.6.4 三元的旋转矩阵
+
+2D 矩阵旋转使用公式为
+$$cos{\theta}p_x·sin{\theta}p_y$$
+$$-sin{\theta}p_x·cos{\theta}p_y$$
+
+绕着 x 旋转
+
+$$
+\begin{bmatrix}
+1\ \ \ \ \ \  0 \ \  \ \ \ 0 \\
+0 \ \ cos{\theta} \ \ sin{\theta}\\
+0 \ \ -sin{\theta} \ \ cos{\theta}
+\end{bmatrix}
+$$
+
+绕着 y 旋转
+
+$$
+\begin{bmatrix}
+cos{\theta} \ \ 0 \ \ sin{\theta}\\
+0\ \ \ \ \ \  1 \ \  \ \ \ 0\\
+-sin{\theta} \ \ 0 \ \ cos{\theta}
+\end{bmatrix}
+$$
+
+绕着 z 旋转
+
+$$
+\begin{bmatrix}
+
+cos{\theta} \ \ -sin{\theta} \ \ 0 \\
+sin{\theta} \ \ \ \ \ \ cos{\theta} \ \ 0 \\
+0 \ \ \ \ \ \ \ 0 \ \ \ \ \ \ 1 \\
+\end{bmatrix}
+$$
+
+### 14.6.5 绘制呈现的效果
+
+在 3d 图形学中，必须提前确定好从哪里观察物体，这样才能正确的将物体绘制在画面上，`目前我们一直将视点固定在世界坐标系的原点`，这章需要让点动起来、
+
+观察点不在原点上需要将观察点移动回到原点上
+
+## 14.6.6 当需要两个以上的旋转时
+
+使用矩阵左乘实现
+
+先绕 X 旋转之后绕 Y 轴旋转（左乘不满足交换律）
+
+$$
+\begin{bmatrix}
+1\ \ \ \ \ \ \ \ \ \  0 \ \  \ \ \ \  \ \ \ 0 \\
+0 \ \ \ \ \ \ cos{\theta} \ \ sin{\theta}\\
+0 \ \  -sin{\theta} \ \ cos{\theta}
+\end{bmatrix}
+
+\begin{bmatrix}
+cos{\theta} \ \ 0 \ \ sin{\theta}\\
+0\ \ \ \ \ \  1 \ \  \ \ \ 0\\
+-sin{\theta} \ \ 0 \ \ cos{\theta}
+\end{bmatrix}
+$$
+
+先转置右边的矩阵之后对每个元素左乘法  
+如新矩阵第一行第一列为$M_1^T$第一行所有元素与$M_2^T$第一列元素依次相乘后相加  
+如新矩阵第二行第三列为$M_1^T$第二行所有元素与$M_2^T$第三列元素依次相乘后相加
+
+$$
+M_1 M_2^T
+$$
+
+# 关于模拟 Robo 的问题
+
+这边没用作者给的贴图只是简单的模拟一下图形和场景
+
+然后下面是代码解读部分
+
+## 观察视角和目标点设置
+
+首先 3D 需要有一个目标时间和观察视角 后面需要把 eyePoint 锁定在我们自己(机甲)身上其实这边写多少都无所谓 后面会从新对观察视角和目标视角进行修改
+
+```C++
+Vector3 eyePoint(0.0, 0.0, 1.0);
+Vector3 targetPoint(0.0, 0.0, 0.0);
+```
+
+然后就是如何把观察者锁定在机甲上
+
+```C++
+eyePoint = *(robo[0]->position());
+```
+
+办法很简单,直接获取位置然后写给观察者视角这样就对机甲做了视角绑定
+
+如果单纯这样是不够的 视角会贴着机甲 而且目标视角会锁定在原点(0,0,0)
+
+接下来就是移动相机和调整观察视角的位置
+
+```C++
+		Vector3 dir;
+		// 获取单位坐标
+		robo[0]->getDirection(&dir);
+		// 让镜头跟随机甲的位置
+		Vector3 v;
+		v.setMul(dir, 6.0); // 相机往机甲的面朝的后方向移动6个单位距离
+		eyePoint -= v;
+		eyePoint.y += 6.0; // 视角向上移动6个单位距离
+		targetPoint = *(robo[0]->position());
+		v.setMul(dir, 1.0);
+		eyePoint += v;
+```
+
+`不管是设置观察者还是目标点都需要以机甲的单位向量作为移动标准`
+
+1.如果直接移动视角那么永远都是按照场景来设置的 既然前面视角绑定了机甲那么向后移动也应该是绑定在机甲上(机甲会转动 向机甲后放的向量也需要一起转动)
+
+```C++
+robo[0]->getDirection(&dir);
+```
+
+2.对这个方向向量做移动
+
+```C++
+//dir为机甲角度坐标的单位向量
+v.setMul(dir, 6.0); // 相机往机甲的面朝的后方向移动6个单位距离
+```
+
+3.相机位置和目标位置调整
+
+```C++
+	v.setMul(dir, 6.0); // 往机甲的面朝的方向6个单位距离
+	eyePoint -= v;
+	eyePoint.y += 6.0; // 视角向上移动6个单位距离
+	targetPoint = *(robo[0]->position());
+	v.setMul(dir, 6.0);
+	targetPoint += v; // 将目标位置往机甲前面设置可以看到更多东西
+```
+
+## 机甲行为设置
+
+```C++
+	//移动
+	Vector3 move( 0.0, 0.0, 0.0 );
+	Pad* pad = Pad::instance();
+	if ( pad->isOn( Pad::UP, mId ) ){
+		move.z = -1.0;
+	}
+	if ( pad->isOn( Pad::DOWN, mId ) ){
+		move.z = 1.0;
+	}
+	if ( pad->isOn( Pad::LEFT, mId ) ){
+		move.x = -1.0;
+	}
+	if ( pad->isOn( Pad::RIGHT, mId ) ){
+		move.x = 1.0;
+	}
+	double ay = atan2( viewVector.x, viewVector.z ) + 180.0;
+	Matrix34 m;
+	m.setRotationY( ay );
+	m.multiply( &move, move );
+	mPosition += move;
+	//跳！
+	if ( pad->isOn( Pad::JUMP, mId ) ){
+		mPosition.y += 1.0;
+		//转向敌人。
+		Vector3 dir;
+		dir.setSub( enemyPos, mPosition ); //从自己到敌人
+		//Y轴角度为atan2（x，z）。
+		mAngleY = atan2( dir.x, dir.z );
+	}else{
+		mPosition.y -= 1.0;
+		if ( mPosition.y < 0.0 ){
+			mPosition.y = 0.0; //地下没有任何东西。
+		}
+	}
+```
+
+初始化一个向量用于移动保存移动量
+
+```C++
+	Vector3 move( 0.0, 0.0, 0.0 );
+```
+
+`接下来的是重点`
+
+此时设置的移动是参考与这个世界(场景)的需要做一些变换 使对象变为机甲 这块前面也做过  也就是上面的获取1单位长度的向量
+
+```C++
+	m.setRotationY( ay );  // 首先需要做移动向量的旋转和机甲视角方向保持一致
+	m.multiply( &move, move ); // 用矩阵变换获得到移动后的向量
+	mPosition += move;			// 向量相加得到新的位置
+```
+
+## 索敌
+
+需要知道对方的位置和自己的位置求出一个偏移的向量  对向量的xy求角度然后直接设置偏转角度  其实这类似前面的视角设置  同为Y轴旋转直接转向原点  这里只是把敌人的位置当做原点位置
+
+```C++
+	Vector3 dir;
+	dir.setSub( enemyPos, mPosition ); //从自己到敌人
+	//Y轴角度为atan2（x，z）。
+	mAngleY = atan2( dir.x, dir.z );
+```
+
+如果不能理解试想一下  如果把前面设置观察点位置删除默认使用场景原点作为观察点会发生什么
+
+```C++
+	targetPoint = *(robo[0]->position());
+	v.setMul(dir, 6.0);
+	targetPoint += v; // 将目标位置往机甲前面设置可以看到更多东西
+```

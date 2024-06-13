@@ -158,11 +158,11 @@ void State::drawForeground(int positionX, int positionY, Object obj)
 	}
 }
 
-// ÉèÖÃÃ¿¸ö²Ù×÷¶ÔÏóµÄÆ«ÒÆÖµ  ºÍÕâ¸öÎ»ÖÃ»á±äÎªÊ²Ã´µÄÖµ
+// ï¿½ï¿½ï¿½ï¿½Ã¿ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ«ï¿½ï¿½Öµ  ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½Ã»ï¿½ï¿½ÎªÊ²Ã´ï¿½ï¿½Öµ
 void State::move(int moveWayX, int moveWayY)
 {
 
-	// Íæ¼ÒÎ»ÖÃ
+	// ï¿½ï¿½ï¿½Î»ï¿½ï¿½
 	if (mMoveCount > 0) {
 		return;
 	}
@@ -189,7 +189,7 @@ void State::move(int moveWayX, int moveWayY)
 			break;
 		}
 	}
-	// ÅÐ¶ÏÊÇ·ñÄÜÒÆ¶¯ÄÇ¸öÎ»ÖÃ
+	// ï¿½Ð¶ï¿½ï¿½Ç·ï¿½ï¿½ï¿½ï¿½Æ¶ï¿½ï¿½Ç¸ï¿½Î»ï¿½ï¿½
 	int pxn = px + moveWayX;
 	int pyn = py + moveWayY;
 

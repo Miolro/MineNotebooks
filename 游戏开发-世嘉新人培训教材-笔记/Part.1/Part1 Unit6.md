@@ -116,7 +116,7 @@ p 是 nullptr。` \
 ```C++
     address+=sizeof(T)*2;
 
-```
+```%
 
 ## 1.6.6 new和delete
 

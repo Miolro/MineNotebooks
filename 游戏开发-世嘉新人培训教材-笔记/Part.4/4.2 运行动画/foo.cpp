@@ -26,7 +26,7 @@ void Framework::update()
 	bool tKeyInS = isKeyOn('s');
 	bool tKeyInA = isKeyOn('a');
 	bool tKeyInD = isKeyOn('d');
-	if (tKeyInW && !gKeyInW)
+	if (tKeyInW && !gKeyInW)     
 	{
 		gState->moveCell('w');
 	}
