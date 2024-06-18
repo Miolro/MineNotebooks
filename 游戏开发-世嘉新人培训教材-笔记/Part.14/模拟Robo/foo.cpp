@@ -13,7 +13,7 @@
 #include <iostream>
 using namespace GameLib;
 using namespace std;
-// ÉèÖÃÊÓ½Ç  ¹Û²ìµãºÍÄ¿±êµãÖ»ÊÇÎªÁËÉèÖÃ¹Û²ì½Ç¶È
+// ï¿½ï¿½ï¿½ï¿½ï¿½Ó½ï¿½  ï¿½Û²ï¿½ï¿½ï¿½Ä¿ï¿½ï¿½ï¿½Ö»ï¿½ï¿½Îªï¿½ï¿½ï¿½ï¿½ï¿½Ã¹Û²ï¿½Ç¶ï¿½
 Vector3 eyePoint(0.0, 0.0, 1.0);
 Vector3 targetPoint(0.0, 0.0, 0.0);
 
@@ -32,7 +32,7 @@ namespace GameLib {
 		point[3].set(50.0, 0.0, 50.0);
 		if (!init)
 		{
-			Pad::create(); //³õÊ¼»¯
+			Pad::create(); //ï¿½ï¿½Ê¼ï¿½ï¿½
 			robo[0] = new Robo(0);
 			robo[1] = new Robo(1);
 
@@ -46,24 +46,24 @@ namespace GameLib {
 			init = !init;
 		}
 		robo[0]->update();
-		// ÒªÈÃ¹Û²ìµãÓë»ú¼×Î»ÖÃ¶ÔÆä
+		// Òªï¿½Ã¹Û²ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Î»ï¿½Ã¶ï¿½ï¿½ï¿½
 		eyePoint = *(robo[0]->position());
 		Vector3 dir;
 		robo[0]->getDirection(&dir);
 
 		Vector3 v;
-		v.setMul(dir, 6.0); // Íù»ú¼×µÄÃæ³¯µÄ·½Ïò3¸öµ¥Î»¾àÀë
+		v.setMul(dir, 6.0); // ï¿½ï¿½ï¿½ï¿½ï¿½×µï¿½ï¿½æ³¯ï¿½Ä·ï¿½ï¿½ï¿½3ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½
 		eyePoint -= v;
-		eyePoint.y += 6.0; // ÊÓ½ÇÏòÉÏÒÆ¶¯2¸öµ¥Î»¾àÀë
+		eyePoint.y += 6.0; // ï¿½Ó½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ¶ï¿½2ï¿½ï¿½ï¿½ï¿½Î»ï¿½ï¿½ï¿½ï¿½
 		targetPoint = *(robo[0]->position());
 		v.setMul(dir, 1.0);
 		eyePoint += v;
 
-		Matrix34 matrix34;	// ¹Û²ìÕß
+		Matrix34 matrix34;	// ï¿½Û²ï¿½ï¿½ï¿½
 		matrix34.setView(eyePoint, targetPoint);
 
 
-		Matrix44 matrix44;	// ÊÀ½ç±ä»»
+		Matrix44 matrix44;	// ï¿½ï¿½ï¿½ï¿½ä»»
 		matrix44.setPerspectiveTransform(60, 640.0, 480.0, 1.0, 10000.0);
 
 
