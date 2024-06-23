@@ -1,6 +1,5 @@
 #include <sstream>
 #include "GameLib/Framework.h"
-#include "GameLib/Math.h"
 #include "Document.h"
 using namespace GameLib;
 using namespace std;
