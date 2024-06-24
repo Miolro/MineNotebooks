@@ -92,3 +92,26 @@
   - 如果开头不是/那么循环上面的第一步(找到开头)
 
 **\*详细看代码流程注释**
+
+字符解析转储为其他类型
+
+
+
+```C++
+const int Element::getDoubleList(double* out, int size)const
+{
+	int retSize = 0;
+	istringstream iss(mValue);
+	for (int i = 0; i < size; i++)
+	{
+		iss >> out[i];
+		if (iss.fail())
+		{
+			break;
+		}
+		retSize++;
+		iss.ignore(mValue.size(), ',');
+	}
+	return retSize;
+}
+```
