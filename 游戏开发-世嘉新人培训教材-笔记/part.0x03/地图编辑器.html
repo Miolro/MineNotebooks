@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <table id="edit">
+
+    </table>
+    <input type="button" onclick="dumpMap()">
+</body>
+
+</html>
+
+<style>
+    div {
+        width: 10px;
+        height: 10px;
+        border: 1px solid black;
+    }
+
+    .FLOOR {
+        background-color: black;
+    }
+
+    .WALL {
+        background-color: red;
+    }
+
+    .BOX {
+        background-color: green;
+    }
+
+    .PLAYER {
+        background-color: blue;
+    }
+</style>
+
+<script>
+    // 物块id
+    const ITEM_ID =
+    {
+        FLOOR: (1 << 0),
+        WALL: (1 << 1),
+        BOX: (1 << 2),
+        PLAYER: (1 << 3)
+    }
+    // 修改页面显示状态  只是编辑界面起显示作用
+    function modiyStyle(val) {
+        console.log(val.target.className = 'WALL');
+        let itemId = val.srcElement.attributes.itemData;
+        switch (itemId) {
+            case ITEM_ID.FLOOR: val.target.className = 'FLOOR'; break;
+            case ITEM_ID.WALL: val.target.className = 'WALL'; break;
+            case ITEM_ID.BOX: val.target.className = 'BOX'; break;
+            case ITEM_ID.PLAYER: val.target.className = 'PLAYER'; break;
+        }
+    }
+    // 设置场地宽高
+    const mapHeight = 10;
+    const mapWidth = 10;
+    let countMenery = 0;
+    // 根据大小生成场地
+    var mapObj = document.getElementById('edit');
+
+    for (let item = 0; item < mapHeight; item++) {
+        let tr = document.createElement('tr');
+
+        for (let item = 0; item < mapHeight; item++) {
+            let td = document.createElement('td');
+            let div = document.createElement('div');
+            div.id = countMenery;
+            div.className = 'FLOOR';
+            div.attributes.itemData = ITEM_ID.FLOOR;
+            td.appendChild(div);
+            tr.appendChild(td);
+            countMenery++;
+        }
+        mapObj.appendChild(tr);
+    }
+
+    let dir = true;// 变化方向
+    //点击任意一个元素改变他的属性
+    for (let item = countMenery - 1; item >= 0; item--) {
+        let div = document.getElementById(item);
+        div.addEventListener('click', function (div) {
+            // 添加监听事件
+            console.log(div.srcElement.attributes.itemData);
+            let itemData = div.srcElement.attributes.itemData;
+            console.log(div.srcElement)
+            // 点击后改变枚举
+            if (dir) {
+                if (itemData == ITEM_ID.BOX) { dir = false };
+                div.srcElement.attributes.itemData = itemData << 1;
+            } else {
+                if (itemData == ITEM_ID.WALL) { dir = true };
+                div.srcElement.attributes.itemData = itemData >> 1;
+            }
+            modiyStyle(div)
+        });
+    }
+
+    //导出地图
+    function dumpMap() {
+        // item转json存储
+        let mapData = [];
+        console.log(1)
+        const map = document.getElementById('edit');
+        for (let line = 0; line < map.children.length; line++) {
+            for (let cell = 0; cell < map.children[line].children.length; cell++) {
+                let dir = { itemId: map.children[line].children[cell].children[0].attributes.itemData }
+                mapData.push(dir);
+            }
+        }
+        // 输出过程
+        var element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(JSON.stringify(mapData)));
+        element.setAttribute('download', 'map.txt');
+        element.style.display = 'none';
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+        console.log();
+    }
+
+
+</script>
