@@ -1,0 +1,53 @@
+<VertexBuffer name="vb">
+	<Vertex position="0.5, 2, 0.5" uv="0, 0"></Vertex>
+	<Vertex position="-0.5, 2, 0.5" uv="0.25, 0"></Vertex>
+	<Vertex position="0.5, 0, 0.5" uv="0, 0.5"></Vertex>
+	<Vertex position="-0.5, 0, 0.5" uv="0.25, 0.5"></Vertex>
+
+	<Vertex position="-0.5, 2, -0.5" uv="0.25, 0"></Vertex>
+	<Vertex position="0.5, 2, -0.5" uv="0.5, 0"></Vertex>
+	<Vertex position="-0.5, 0, -0.5" uv="0.25, 0.5"></Vertex>
+	<Vertex position="0.5, 0, -0.5" uv="0.5, 0.5"></Vertex>
+
+	<Vertex position="-0.5, 2, 0.5" uv="0.5, 0"></Vertex>
+	<Vertex position="-0.5, 2, -0.5" uv="0.75, 0"></Vertex>
+	<Vertex position="-0.5, 0, 0.5" uv="0.5, 0.5"></Vertex>
+	<Vertex position="-0.5, 0, -0.5" uv="0.75, 0.5"></Vertex>
+
+	<Vertex position="0.5, 2, -0.5" uv="0.75, 0"></Vertex>
+	<Vertex position="0.5, 2, 0.5" uv="1, 0"></Vertex>
+	<Vertex position="0.5, 0, -0.5" uv="0.75, 0.5"></Vertex>
+	<Vertex position="0.5, 0, 0.5" uv="1, 0.5"></Vertex>
+
+	<Vertex position="0.5, 2, -0.5" uv="0, 0.5"></Vertex>
+	<Vertex position="-0.5, 2, -0.5" uv="0.25, 0.5"></Vertex>
+	<Vertex position="0.5, 2, 0.5" uv="0, 0.75"></Vertex>
+	<Vertex position="-0.5, 2, 0.5" uv="0.25, 0.75"></Vertex>
+
+	<Vertex position="-0.5, 0, -0.5" uv="0.25, 0.5"></Vertex>
+	<Vertex position="0.5, 0, -0.5" uv="0.5, 0.5"></Vertex>
+	<Vertex position="-0.5, 0, 0.5" uv="0.25, 0.75"></Vertex>
+	<Vertex position="0.5, 0, 0.5" uv="0.5, 0.75"></Vertex>
+</VertexBuffer>
+<IndexBuffer name="ib">
+	<Triangle indices="0, 2, 1"></Triangle>
+	<Triangle indices="3, 2, 1"></Triangle>
+	<Triangle indices="4, 6, 5"></Triangle>
+	<Triangle indices="7, 6, 5"></Triangle>
+	<Triangle indices="8, 10, 9"></Triangle>
+	<Triangle indices="11, 10, 9"></Triangle>
+	<Triangle indices="12, 14, 13"></Triangle>
+	<Triangle indices="15, 14, 13"></Triangle>
+	<Triangle indices="16, 18, 17"></Triangle>
+	<Triangle indices="19, 18, 17"></Triangle>
+	<Triangle indices="20, 22, 21"></Triangle>
+	<Triangle indices="23, 22, 21"></Triangle>
+</IndexBuffer>
+<Texture name="texture" filename="grid.tga"></Texture>
+<Batch 
+	name="robo"
+	vertexBuffer="vb"
+	indexBuffer="ib"
+	texture="texture"
+	blend="opaque">
+</Batch>

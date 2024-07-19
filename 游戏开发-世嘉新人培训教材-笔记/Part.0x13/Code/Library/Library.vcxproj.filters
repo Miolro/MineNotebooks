@@ -1,0 +1,105 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="src">
+      <UniqueIdentifier>{5745f44f-dc12-498b-9726-467f1a1e92c7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include">
+      <UniqueIdentifier>{2ce1d975-d6c0-474e-aa31-1727c0a1f5c9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Engine">
+      <UniqueIdentifier>{daf1ea21-f6ce-40b0-9f43-e845995aa2b3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Math">
+      <UniqueIdentifier>{7354dfb7-aa8e-4fae-bddd-7366f1a4bfd0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="src\Engine">
+      <UniqueIdentifier>{0b650a9d-d2c6-4669-b982-8365e4d4fee0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\Math">
+      <UniqueIdentifier>{afd25492-b7d3-43eb-b54d-d7f29480758c}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\engine\base\Camera.h">
+      <Filter>include\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="include\base\calculate\Matrix34.h">
+      <Filter>include\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="include\base\calculate\Matrix44.h">
+      <Filter>include\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="include\base\calculate\Vector2.h">
+      <Filter>include\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="include\base\calculate\Vector3.h">
+      <Filter>include\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="include\engine\base\Pad.h">
+      <Filter>include\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="include\models\Robo.h">
+      <Filter>include\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="include\models\Stage.h" />
+    <ClInclude Include="include\base\xml\Document.h" />
+    <ClInclude Include="include\base\file\File.h" />
+    <ClInclude Include="include\engine\blueprint\VertexBuffer.h" />
+    <ClInclude Include="include\engine\blueprint\IndexBuffer.h" />
+    <ClInclude Include="include\engine\blueprint\Batch.h" />
+    <ClInclude Include="include\base\xml\Tag.h" />
+    <ClInclude Include="include\base\xml\Element.h" />
+    <ClInclude Include="include\base\xml\Attribute.h" />
+    <ClInclude Include="include\engine\blueprint\Texture.h" />
+    <ClInclude Include="include\engine\blueprint\Blueprint.h" />
+    <ClInclude Include="include\engine\collision\Cuboid.h" />
+    <ClInclude Include="include\engine\collision\Sphere.h" />
+    <ClInclude Include="include\engine\collision\Triangle.h" />
+    <ClInclude Include="include\dbg\dbg.h" />
+    <ClInclude Include="include\models\Bullet.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\base\calculate\Matrix34.cpp">
+      <Filter>src\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\base\calculate\Matrix44.cpp">
+      <Filter>src\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\base\calculate\Vector2.cpp">
+      <Filter>src\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\base\calculate\Vector3.cpp">
+      <Filter>src\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\base\Camera.cpp">
+      <Filter>src\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\engine\base\Pad.cpp">
+      <Filter>src\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\models\Robo.cpp">
+      <Filter>src\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\models\Stage.cpp" />
+    <ClCompile Include="src\base\xml\Document.cpp" />
+    <ClCompile Include="src\base\file\File.cpp" />
+    <ClCompile Include="src\engine\blueprint\VertexBuffer.cpp" />
+    <ClCompile Include="src\engine\blueprint\IndexBuffer.cpp" />
+    <ClCompile Include="src\engine\blueprint\Batch.cpp" />
+    <ClCompile Include="src\base\xml\Tag.cpp" />
+    <ClCompile Include="src\base\xml\Element.cpp" />
+    <ClCompile Include="src\base\xml\Attribute.cpp" />
+    <ClCompile Include="src\engine\blueprint\Texture.cpp" />
+    <ClCompile Include="src\engine\blueprint\Blueprint.cpp" />
+    <ClCompile Include="src\engine\collision\Cuboid.cpp" />
+    <ClCompile Include="src\engine\collision\Sphere.cpp" />
+    <ClCompile Include="src\engine\collision\Triangle.cpp" />
+    <ClCompile Include="src\dbg\dbg.cpp" />
+    <ClCompile Include="src\models\Bullet.cpp" />
+  </ItemGroup>
+</Project>
